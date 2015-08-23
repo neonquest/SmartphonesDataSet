@@ -13,7 +13,7 @@ run_analysis <- function(topdir = "./UCI HAR Dataset/", features_regex = '\\b(me
     # Read features.txt
     features = read.table(paste(topdir, "features.txt", sep = ""), col.names = c("index", "name"))
     
-    # Convert factor vector to character and to valid column names
+    # Convert factor vector to character and then to valid column names
     features = as.character(features[,2]) %>% make.names()
     
     # Create a vector of features to be selected based on features_regex
