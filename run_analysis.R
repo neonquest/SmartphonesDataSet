@@ -1,10 +1,14 @@
+## The following function processes the given HAR dataset by doing the following:
+## - merge subject, activity(y) and feature(X) values from both the test/train partitions
+## - appropriately label the data set with descriptive variable names. 
+## - extract only the measurements matching 'features_regex' (mean & std by default)
+## - use descriptive activity names to name the activities
+## - finally, create a tidy data set with the average of each variable for each activity and each subject.
+
 library(dplyr)
 library(reshape2)
 
-# Merge the training and the test sets to create one data set.
-# Extract only the measurements on the mean and standard deviation for each measurement.
-# Appropriately label the data set with descriptive variable names. 
-run_analysis <- function(topdir = "./UCI HAR Dataset/", inputs = c("test", "train"), features_regex = 'mean|std') {
+run_analysis <- function(topdir = "./UCI HAR Dataset/", features_regex = '\\b(mean|std)\\b') {
 
     # Read features.txt
     features = read.table(paste(topdir, "features.txt", sep = ""), col.names = c("index", "name"))
@@ -12,24 +16,30 @@ run_analysis <- function(topdir = "./UCI HAR Dataset/", inputs = c("test", "trai
     # Convert factor vector to character and to valid column names
     features = as.character(features[,2]) %>% make.names()
     
-    # Filter features to be selected and convert to valid column names
-    features_required = features[grepl(paste("\\b(", features_regex, ")\\b", sep = "") , features, perl = TRUE)]
-    
+    # Create a vector of features to be selected based on features_regex
+    features_required = features[grepl(features_regex, features, perl = TRUE)]
+
+    # Read data from both test & train partitions
+    partitions = c("test", "train")
     all_data = data.frame()
-    for (type in inputs) {
+    for (type in partitions) {
         
         subject = read.table(paste(topdir, type, "/subject_", type, ".txt", sep = ""), col.names = "subject")
         y = read.table(paste(topdir, type, "/y_", type, ".txt", sep = ""), col.names = "activity_id")
         
         X = read.table(paste(topdir, type, "/X_", type, ".txt", sep = ""), col.names = features)
+        # Keep only the features_required columns  
         X = X[,features_required]
         
+        # Combine subject, activity, measurements columns and add this data to all_data
         all_data = rbind(all_data, cbind(subject, y, X))
     }
 
-    # Use descriptive activity names to name the activities
+    # Read activity labels
     activity_labels = read.table(paste(topdir, "activity_labels.txt", sep = ""), col.names = c("activity_id", "activity_label"))
     
+    # merge all_data and activity_labels to add descriptive activity names
+    # remove activity_id column & rename activity_label column to activity
     all_data = merge(all_data, activity_labels, by.x = "activity_id", by.y = "activity_id") %>% 
                subset(select = -activity_id) %>%
                rename(activity = activity_label)
