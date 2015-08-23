@@ -19,5 +19,8 @@ Below is a brief description of the variables in the output dataset.
 
 * subject (1) - identifies the subject who performed the activity. Its range is from 1 to 30.
 * activity (2)  - identifies the activity performed by the subject. Its value is one of six activities (WALKING, WALKING_UPSTAIRS, WALKING_DOWNSTAIRS, SITTING, STANDING, LAYING) druring which measurements were taken.
-* others (3-68) - each of the remaining 66 columns represent the average of a feature measurement of a specific subject and an activity. These columns directly map to a specific feature measurement (mean or standard deviation only) in the input dataset. See *features_info.txt* details about the features in the input dataset. For example, *tBodyAcc.mean...X* measurement is the mean of all *tBodyAcc-mean()-X* measurements for a given subject and activity.
+* others (3-68) - each of the remaining 66 columns represent the average of all measurements of a specific features, from a specific subject and an activity. These columns directly map to a specific feature measurement (mean or standard deviation only) in the input dataset. See *features_info.txt* for more details. For example, *tBodyAcc.mean...X* column is the mean of all *tBodyAcc-mean()-X* measurements for a given subject and activity. 
 
+The complete list of columns in output dataset are listed in *columns.txt*
+
+See *features_info.txt* details about the features in the input dataset. 
