@@ -1,11 +1,11 @@
 library(dplyr)
+library(reshape2)
 
 # Merge the training and the test sets to create one data set.
 # Extract only the measurements on the mean and standard deviation for each measurement.
 # Appropriately label the data set with descriptive variable names. 
-read_data <- function(topdir = "./data/UCI HAR Dataset/", inputs = c("test", "train"), features_regex = 'mean|std') {
-    
-    features_regex = 'mean|std'
+run_analysis <- function(topdir = "./UCI HAR Dataset/", inputs = c("test", "train"), features_regex = 'mean|std') {
+
     # Read features.txt
     features = read.table(paste(topdir, "features.txt", sep = ""), col.names = c("index", "name"))
     
@@ -19,26 +19,29 @@ read_data <- function(topdir = "./data/UCI HAR Dataset/", inputs = c("test", "tr
     for (type in inputs) {
         
         subject = read.table(paste(topdir, type, "/subject_", type, ".txt", sep = ""), col.names = "subject")
-        y = read.table(paste(topdir, type, "/y_", type, ".txt", sep = ""), col.names = "activity")
+        y = read.table(paste(topdir, type, "/y_", type, ".txt", sep = ""), col.names = "activity_id")
         
         X = read.table(paste(topdir, type, "/X_", type, ".txt", sep = ""), col.names = features)
         X = X[,features_required]
         
-        all_data = rbind(all_data, cbind(subject, X, y))
+        all_data = rbind(all_data, cbind(subject, y, X))
     }
-    names(all_data)
 
-    # Use descriptive activity names to name the activities in the data set
-    activity_labels = read.table(paste(topdir, "activity_labels.txt", sep = ""), col.names = c("id", "label"))
+    # Use descriptive activity names to name the activities
+    activity_labels = read.table(paste(topdir, "activity_labels.txt", sep = ""), col.names = c("activity_id", "activity_label"))
     
-    all_data
+    all_data = merge(all_data, activity_labels, by.x = "activity_id", by.y = "activity_id") %>% 
+               subset(select = -activity_id) %>%
+               rename(activity = activity_label)
+
+    # Create a tidy data set with the average of each variable for each activity and each subject.
+    mean_data = melt(all_data, id = cbind("subject", "activity")) %>% 
+                dcast(subject + activity ~ variable, mean)
+    
+    mean_data    
 }
 
-data = read_data()
+har_tidydata = run_analysis()
+har_tidydata
 
-
-
-# From the data set in step 4, creates a second, independent tidy data set with the average of each variable for each activity and each subject.
-
-
-
+write.table(har_tidydata, file = "./UCI_HAR_tidydata.txt", row.names = FALSE)
